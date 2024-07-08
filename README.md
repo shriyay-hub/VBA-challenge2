@@ -1,13 +1,19 @@
 Sai Shriya Yenugu's VBA challenge Project
+Explanation:
+Main Loop and Quarter Handling:
 
-Create a script that loops through all the stocks for each quarter and outputs the following information:
-The ticker symbol
-Quarterly change from the opening price at the beginning of a given quarter to the closing price at the end of that quarter.
-The percentage change from the opening price at the beginning of a given quarter to the closing price at the end of that quarter.
-The total stock volume of the stock. The result should match the following image:
+The script loops through each worksheet (ws) in the workbook.
+Within each worksheet loop, it further loops through each quarter (1 to 4).
+Quarter Detection:
 
-Moderate solution
-Add functionality to your script to return the stock with the "Greatest % increase", "Greatest % decrease", and "Greatest total volume". The solution should match the following image:
+It uses a helper function GetQuarter to determine which quarter a particular date belongs to based on its month.
+Data Processing:
 
-Hard solution
-Make the appropriate adjustments to your VBA script to enable it to run on every worksheet (that is, every quarter) at once.
+For each row in the current quarter, it calculates the quarterly change, percent change, and accumulates the total volume.
+It checks if the ticker symbol changes to finalize the calculations for the current ticker.
+Summary Calculation:
+
+After processing each quarter, it updates the Greatest % Increase, Greatest % Decrease, and Greatest Total Volume across all quarters.
+Output:
+
+Finally, it outputs the results in the first worksheet (ThisWorkbook.Worksheets(1)) as specified.
