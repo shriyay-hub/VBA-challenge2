@@ -1,0 +1,158 @@
+Sub StockAnalysis()
+
+    ' Declare variables for the summary information
+    Dim GreatestIncreaseTicker As String
+    Dim GreatestIncreaseChange As Double
+    Dim GreatestDecreaseTicker As String
+    Dim GreatestDecreaseChange As Double
+    Dim GreatestVolumeTicker As String
+    Dim GreatestVolume As Double
+
+    ' Initialize summary values
+    GreatestIncreaseChange = -1 ' Set to -1 to ensure any positive change will be greater
+    GreatestDecreaseChange = 1 ' Set to 1 to ensure any negative change will be smaller
+    GreatestVolume = 0
+
+    ' Loop through all worksheets in the workbook
+    For Each ws In ThisWorkbook.Worksheets
+
+        ' Loop through each quarter
+        For Quarter = 1 To 4
+
+            ' Set initial variables
+            Dim Ticker As String
+            Dim QuarterlyChange As Double
+            Dim PercentChange As Double
+            Dim TotalVolume As Double
+            Dim LastRow As Long
+            Dim SummaryRow As Long
+            Dim OpeningPrice As Double
+            Dim ClosingPrice As Double
+            Dim FirstRow As Long
+
+            ' Set column headers in summary table
+            ws.Cells(1, 9).Value = "Ticker"
+            ws.Cells(1, 10).Value = "Quarterly Change"
+            ws.Cells(1, 11).Value = "Percent Change"
+            ws.Cells(1, 12).Value = "Total Stock Volume"
+
+            ' Find the last row of data in the worksheet
+            LastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+            ' Set initial summary table row
+            SummaryRow = 2
+
+            ' Initialize total volume and first row flag
+            TotalVolume = 0
+            FirstRow = 0
+
+            ' Loop through all rows of data
+            For i = 2 To LastRow
+
+                ' Check if the quarter has changed
+                If GetQuarter(ws.Cells(i, 2).Value) <> Quarter Then
+                    Continue For ' Skip rows that are not in the current quarter
+                End If
+
+                ' Add to total volume for current ticker
+                TotalVolume = TotalVolume + ws.Cells(i, 7).Value
+
+                ' Check if the ticker symbol has changed
+                If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+
+                    ' Get the ticker symbol
+                    Ticker = ws.Cells(i, 1).Value
+
+                    ' Get the closing price
+                    ClosingPrice = ws.Cells(i, 6).Value
+
+                    ' Calculate the quarterly change
+                    QuarterlyChange = ClosingPrice - OpeningPrice
+
+                    ' Calculate the percent change
+                    If OpeningPrice <> 0 Then
+                        PercentChange = (QuarterlyChange / OpeningPrice) * 100
+                    Else
+                        PercentChange = 0
+                    End If
+
+                    ' Add the quarterly change, percent change, and total volume to the summary table
+                    ws.Cells(SummaryRow, 9).Value = Ticker
+                    ws.Cells(SummaryRow, 10).Value = QuarterlyChange
+                    ws.Cells(SummaryRow, 11).Value = PercentChange
+                    ws.Cells(SummaryRow, 12).Value = TotalVolume
+
+                    ' Format the percent change as a percentage
+                    ws.Cells(SummaryRow, 11).NumberFormat = "0.00%"
+
+                    ' Format the quarterly change with conditional formatting
+                    If QuarterlyChange < 0 Then
+                        ws.Cells(SummaryRow, 10).Interior.Color = RGB(255, 0, 0) ' Red
+                    Else
+                        ws.Cells(SummaryRow, 10).Interior.Color = RGB(0, 255, 0) ' Green
+                    End If
+
+                    ' Check for greatest percent increase
+                    If PercentChange > GreatestIncreaseChange Then
+                        GreatestIncreaseChange = PercentChange
+                        GreatestIncreaseTicker = Ticker
+                    End If
+
+                    ' Check for greatest percent decrease
+                    If PercentChange < GreatestDecreaseChange Then
+                        GreatestDecreaseChange = PercentChange
+                        GreatestDecreaseTicker = Ticker
+                    End If
+
+                    ' Check for greatest total volume
+                    If TotalVolume > GreatestVolume Then
+                        GreatestVolume = TotalVolume
+                        GreatestVolumeTicker = Ticker
+                    End If
+
+                    ' Move to the next row in the summary table
+                    SummaryRow = SummaryRow + 1
+
+                    ' Reset total volume and first row flag for next ticker
+                    TotalVolume = 0
+                    FirstRow = 0
+
+                ElseIf FirstRow = 0 Then
+                    ' Get the opening price (assume opening price of the quarter is the first price of the quarter)
+                    OpeningPrice = ws.Cells(i, 3).Value
+                    FirstRow = i
+                End If
+            Next i
+
+        Next Quarter ' Next quarter loop
+
+    Next ws ' Next worksheet loop
+
+    ' Output the results in the first worksheet
+    With ThisWorkbook.Worksheets(1)
+        .Cells(2, 15).Value = "Greatest % Increase"
+        .Cells(2, 16).Value = GreatestIncreaseTicker
+        .Cells(2, 17).Value = GreatestIncreaseChange
+        .Cells(3, 15).Value = "Greatest % Decrease"
+        .Cells(3, 16).Value = GreatestDecreaseTicker
+        .Cells(3, 17).Value = GreatestDecreaseChange
+        .Cells(4, 15).Value = "Greatest Total Volume"
+        .Cells(4, 16).Value = GreatestVolumeTicker
+        .Cells(4, 17).Value = GreatestVolume
+    End With
+
+End Sub
+
+Function GetQuarter(dateValue As Date) As Integer
+    ' Returns the quarter (1 to 4) based on the month of the given date
+    Select Case Month(dateValue)
+        Case 1 To 3
+            GetQuarter = 1 ' Q1 for January to March
+        Case 4 To 6
+            GetQuarter = 2 ' Q2 for April to June
+        Case 7 To 9
+            GetQuarter = 3 ' Q3 for July to September
+        Case 10 To 12
+            GetQuarter = 4 ' Q4 for October to December
+    End Select
+End Function
