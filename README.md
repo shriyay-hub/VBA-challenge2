@@ -1,4 +1,4 @@
-Sai Shriya Yenugu's Project
+Sai Shriya Yenugu's VBA challenge Project
 
 Create a script that loops through all the stocks for each quarter and outputs the following information:
 The ticker symbol
